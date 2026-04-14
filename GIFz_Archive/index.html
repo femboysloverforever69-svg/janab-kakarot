@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+
+<!-- Mirrored from bedr00mz.neocities.org/GIFz_Archive/ by HTTrack Website Copier/3.x [XR&CO'2014], Fri, 10 Apr 2026 03:27:24 GMT -->
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="Bedr00mZ Website">
+<meta name="author" content="Viktor Tibay">
+<title>Bedr00mZ</title>
+<link rel="icon" type="image/png" href="images/logo3d41d.png?">
+<link rel="preload" href="images/Gifz_ArkhiVe_L0g0_hover_Mask.png" as="image" type="image/png" />
+<link rel="preload" href="images/Bedr00mZ_Desk_top_hover.gif" as="image" type="image/gif" />
+<link rel="preload" href="images/Bedr00mZ_Desk_top_on.gif" as="image" type="image/gif" />
+<link rel="preload" href="images/Bedr00mZ_Sourire_top_hover.gif" as="image" type="image/gif" />
+<link rel="preload" href="images/Bedr00mZ_Sourire_top_on.gif" as="image" type="image/gif" />
+<link rel="preload" href="images/H0ME_on.jpg" as="image" type="image/jpg" />
+<style> 
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital@0;1&amp;display=swap');
+body {
+margin: 0;
+background-image: url("images/Street_Bedr00mZ.jpg");
+overflow-y: scroll;
+min-height: calc(100vh + 50px);
+position: relative;
+padding-bottom: 4cm; /* espace final de la page */
+} 
+/* ==== BACKGROUNDS FIXES ==== */
+.bg-fence {
+  position: fixed;
+  inset: 0;
+  background-image: url("images/fence_tile.png");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+  pointer-events: none;
+  z-index: -10;
+  will-change: transform;
+}
+.bg-panel {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1000px;    
+  height: 100%;
+  background: rgba(40, 60, 40, 0.96); /* transparency */
+  z-index: -5;
+  pointer-events: none;
+}
+
+.bg-panel::before,
+.bg-panel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 10px;            /* largeur du biseau */
+  height: 100%;
+  z-index: 1;
+}
+.bg-panel::before {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    rgba(0,0,0,1),        /* bord 100% opaque */
+    rgba(0,0,0,0.1)       /* se fond vers le fond semi-transparent */
+  );
+}
+.bg-panel::after {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    rgba(0,0,0,1),        /* bord 100% opaque */
+    rgba(0,0,0,0.1)
+  );
+}
+
+/* ==== FRAMES ET SCENE ==== */
+.Fr4me {
+  width: 1050px;
+  margin: 0 auto;
+}
+@media (max-width: 1100px) {
+  .Fr4me { width: 100%; }
+}
+
+.scene {
+  width: 820px;
+  margin: 100px auto;
+  scroll-behavior: smooth;
+  overflow: visible;
+}
+@media (max-width: 900px) {
+  .scene { width: 100%; margin: 60px auto; }
+}
+
+/* ==== GARAGES ==== */
+.garage-spacer {
+  height: 1px;
+  pointer-events: none;
+}
+
+.garage {
+  position: relative;
+  overflow: hidden; /* important */
+  height: 0;        /* klosed @ 1st */
+  transition: height 1.2s linear;
+  z-index: 1;
+}
+
+.garage-content {
+  padding: 0;
+}
+
+.garage .binder-page {
+  margin: 0 auto;
+}
+
+/* Garage door */
+.garage-door {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background-image: url("garage-door.html");
+  background-size: cover;
+  transform: translateY(0);
+  transition: transform 0.8s ease;
+  z-index: 2;
+}
+
+.scene.open .garage-door {
+  transform: translateY(100%);
+}
+
+/* ==== DECORS TOP / BOTTOM ====*/
+.decor img {
+  display: block;
+  width: 100%;
+}
+
+.decor-top, .decor-bottom {
+  position: relative;
+  z-index: 10;
+}
+.decor-top { cursor: pointer; }
+
+/* responsive décor */
+@media (min-width: 901px) {
+  .decor-top img,
+  .decor-bottom img {
+    width: 900px;
+    margin-left: 50%;
+    transform: translateX(-50%);
+  }
+}
+@media (max-width: 900px) {
+  .decor-top img,
+  .decor-bottom img {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    transform: none;
+  }
+}
+
+/* Ombres décor */
+.img-bottom {
+  display: block;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 10px 15px -5px rgba(0,0,0,0.7);
+}
+
+/* Ombre uniquement sous img-top */
+.decor-top::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 30px;       /* épaisseur de l'ombre */
+  background: rgba(0,0,0,0.55);
+  filter: blur(12px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  z-index: 5;
+}
+.scene.open .decor-top::after,
+.scene.closing .decor-top::after {
+  opacity: 1;
+}
+
+/* Supprime les drop-shadows existantes sur les images */
+.scene.open .decor-top img,
+.scene.closing .decor-top img,
+.scene.open .decor-bottom img,
+.scene.closing .decor-bottom img {
+  filter: none;
+}
+
+/* ==== PANNEAU ET LOGO ==== */
+.panneau-wrapper {
+  position: relative;
+  width: 100%;
+  height: 450px;
+  overflow: visible;
+}
+
+.panneau {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 500px;
+  transform: translateX(-50%) translateY(var(--offset, 0px));
+  z-index: 10;
+}
+
+.panneau::after {
+  content: "";
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  top: 100%;
+  height: 26px;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.75),
+    rgba(0,0,0,0)
+  );
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* L0g0 */
+.logo {
+  display: block;
+  margin: 0 auto;
+}
+.shadow-logo {
+  filter: drop-shadow(0 18px 14px rgba(0,0,0,0.65));
+}
+.shadow-main {
+  box-shadow: 0 15px 20px rgba(0,0,0,0.7);
+}
+
+/* ==== HOME IMAGE ==== */
+.home-image {
+  margin-top: 8cm;   /* distance depuis Garage */
+  width: 100%;
+  text-align: center;
+}
+
+.home-image img {
+  display: inline-block;
+  max-width: 300px;
+  width: 80%;
+  opacity: 1;
+  transition: opacity 0.2s ease, filter 0.2s ease;
+}
+
+.home-image img:hover {
+  opacity: 0.92;
+  filter: brightness(1.1);
+}
+
+/* ==== SLIDERZ ET CADRES ==== */
+.fader {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  list-style: none;
+  padding: 0;
+  margin: 0 auto;
+  width: fit-content;
+}
+.fader li { display: block; width: 100%; }
+.fader li img { max-width: 100%; }
+
+.fader li:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  justify-self: center;
+  max-width: calc((100% - 30px) / 2);
+}
+
+.cadre {
+  display: inline-block;
+  padding: 5px;
+  background: radial-gradient(
+    closest-side,
+    #000 0%,
+    #111 20%,
+    #555 50%,
+    #aaa 100%
+  );
+  box-shadow: inset 0 0 3px #000,
+              inset 0 0 6px #000;
+  filter: drop-shadow(0 9px 8px rgba(0,0,0,0.6));
+}
+
+/* ==== BINDER PAGES / THEMES ==== */
+.binder-page {
+  position: relative;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      var(--binder-dark, #0b0b0b) 10px,
+      var(--binder-dark, #0b0b0b) 8px,
+      var(--binder-line, #677D3C) 29px
+    ),
+    linear-gradient(
+      to right,
+      transparent 0,
+      transparent 48px,
+      var(--binder-accent, #ff0040) 48px,
+      var(--binder-accent, #ff0040) 51px,
+      transparent 51px
+    );
+  background-color: var(--binder-dark, #0b0b0b);
+  line-height: 10px;
+  padding: 30px;
+  margin: 40px auto;
+  max-width: 820px;
+  color: #ddd;
+  border: 2px solid #212121;
+}
+
+/* Scenes colors */
+.scene-green {
+  --binder-dark: #0b0b0b;
+  --binder-line: #677D3C;
+  --binder-accent: #ff0040;
+}
+.scene-rust {
+  --binder-dark: #0c0d07;
+  --binder-line: #666633;
+  --binder-accent: #5f6533;
+}
+.scene-purple {
+  --binder-dark: #0c0d07;
+  --binder-line: #666666;
+  --binder-accent: #5f6533;
+}
+
+/* ==== TEXTE ==== */
+p {
+  color: lime;
+  text-align: center;
+  font-family: 'EB Garamond', serif;
+  font-size: 50px;
+}
+</style>
+<body>
+  <!-- ===== SCRIPTS BEDR00MZ ===== -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  /* ==== PANNEAU SCROLL PARALLAX ==== */
+  const panneau = document.querySelector('.panneau');
+  if (panneau) {
+    const speedFactor = 1.5; // vitesse de décalage du panneau
+    window.addEventListener('scroll', () => {
+      panneau.style.setProperty('--offset', `${-window.scrollY * speedFactor}px`);
+    });
+  }
+
+  /* ==== SLIDERS ALEATOIRES ==== */
+  document.querySelectorAll('.randomSlider .fader').forEach(container => {
+    const items = [...container.querySelectorAll('li')];
+    const len = items.length;
+    for (let i = 0; i < len; i++) {
+      container.prepend(items[Math.floor(Math.random() * len)]);
+    }
+  });
+
+  /* ==== SONS DE HOVER ==== */
+  let soundEnabled = true;
+
+  function playHoverSFX(volume = 1) {
+    if (!soundEnabled) return;
+    const base = document.getElementById("garage-hover");
+    if (!base) return;
+
+    const s = base.cloneNode();
+    s.volume = volume;
+    s.play().catch(()=>{});
+  }
+
+  document.querySelectorAll(".decor-top img, .decor-bottom").forEach(el => {
+    el.addEventListener("mouseenter", () => playHoverSFX(0.12));
+  });
+
+  /* ==== SCENES GARAGES ==== */
+  const GARAGE_DURATION = 1200;
+  let audioTimeout = null;
+
+  const openSound  = document.getElementById("garage-0pen");
+  const closeSound = document.getElementById("garage-klose");
+  const clangSound = document.getElementById("garage-klang");
+
+  if (openSound)  openSound.volume  = 0.6;
+  if (closeSound) closeSound.volume = 0.6;
+  if (clangSound) clangSound.volume = 0.8;
+
+  document.querySelectorAll(".scene").forEach(scene => {
+
+    const topImg  = scene.querySelector(".decor-top img");
+    const bottom  = scene.querySelector(".decor-bottom");
+    const garage  = scene.querySelector(".garage");
+    const content = scene.querySelector(".garage-content");
+
+    function setTop(state) {
+      if (!topImg) return;
+      if (state === "off")   topImg.src = topImg.dataset.off;
+      if (state === "hover") topImg.src = topImg.dataset.hover;
+      if (state === "on")    topImg.src = topImg.dataset.on;
+    }
+
+    [topImg, bottom].forEach(el => {
+      if (!el) return;
+
+      el.addEventListener("mouseenter", () => {
+        if (!scene.classList.contains("open")) setTop("hover");
+      });
+
+      el.addEventListener("mouseleave", () => {
+        if (!scene.classList.contains("open")) setTop("off");
+      });
+
+      /* CLICK = GESTE AUDIO VALIDE (IMPORTANT MOBILE) */
+      el.addEventListener("click", () => {
+
+        if (scene.classList.contains("open")) {
+          /* ==== CLOSING ==== */
+          if (garage) garage.style.height = "0px";
+          scene.classList.remove("open");
+          scene.classList.add("closing");
+          setTop("off");
+
+          clearTimeout(audioTimeout);
+
+          if (openSound)  { openSound.pause(); openSound.currentTime = 0; }
+          if (closeSound) { closeSound.currentTime = 0; closeSound.play().catch(()=>{}); }
+
+          audioTimeout = setTimeout(() => {
+            if (closeSound) { closeSound.pause(); closeSound.currentTime = 0; }
+            if (clangSound) { clangSound.currentTime = 0; clangSound.play().catch(()=>{}); }
+          }, GARAGE_DURATION);
+
+          setTimeout(() => {
+            scene.classList.remove("closing");
+          }, GARAGE_DURATION);
+
+        } else {
+          /* ==== OPENING ==== */
+          if (garage && content) {
+            garage.style.height = content.scrollHeight + "px";
+          }
+
+          scene.classList.add("open");
+          setTop("on");
+
+          clearTimeout(audioTimeout);
+
+          if (closeSound) { closeSound.pause(); closeSound.currentTime = 0; }
+          if (openSound)  { openSound.currentTime = 0; openSound.play().catch(()=>{}); }
+
+          audioTimeout = setTimeout(() => {
+            if (openSound) { openSound.pause(); openSound.currentTime = 0; }
+          }, GARAGE_DURATION);
+        }
+
+      });
+    });
+
+  });
+
+  /* ==== AUDIO UNLOCK GLOBAL (OBLIGATOIRE MOBILE) ==== */
+  const audioIds = [
+    "garage-0pen",
+    "garage-klose",
+    "garage-klang",
+    "garage-hover"
+  ];
+
+  let audioUnlocked = false;
+
+  function unlockAudio() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+
+    audioIds.forEach(id => {
+      const a = document.getElementById(id);
+      if (!a) return;
+
+      const v = a.volume;
+      a.volume = 0;
+      a.play().then(() => {
+        a.pause();
+        a.currentTime = 0;
+        a.volume = v;
+      }).catch(()=>{});
+    });
+
+    window.removeEventListener("click", unlockAudio);
+    window.removeEventListener("touchstart", unlockAudio);
+  }
+
+  window.addEventListener("click", unlockAudio);
+  window.addEventListener("touchstart", unlockAudio);
+
+});
+
+/* ==== PARALLAX GRILLAGE ==== */
+window.addEventListener("DOMContentLoaded", () => {
+  const fence = document.querySelector(".bg-fence");
+  const initialX = -50;
+  if (fence) fence.style.backgroundPosition = `${initialX}px 0px`;
+});
+
+window.addEventListener("scroll", () => {
+  const fence = document.querySelector(".bg-fence");
+  if (!fence) return;
+  const y = window.scrollY;
+  const initialX = -50;
+  fence.style.backgroundPosition = `${initialX}px ${y * 0.2}px`;
+});
+</script>
+  
+  <!-- ===== BACKGROUNDZ ===== -->
+  <div class="bg-gradient"></div>
+  <div class="bg-fence"></div>
+  <div class="bg-panel"></div>
+
+  <div class="Fr4me">
+    <br><br><br>
+
+    <!-- ===== PANNEAU L0G0 ===== -->
+    <div class="panneau-wrapper">
+      <img class="panneau logo shadow-logo" 
+           src="images/Gifz_ArkhiVe_L0g0_Mask.png" 
+           onmouseover="this.src='images/Gifz_ArkhiVe_L0g0_hover_Mask.png'" 
+           onmouseout="this.src='images/Gifz_ArkhiVe_L0g0_Mask.png'" 
+           alt="GifZ Archive Sign">
+    </div>
+
+    <!-- ===== SCENE GARAGE Bedr00mZ DesK ===== -->
+    <div class="scene scene-green">
+      <div class="decor decor-top">
+        <img src="images/Bedr00mZ_Desk_top_off.gif"
+             data-off="images/Bedr00mZ_Desk_top_off.gif"
+             data-hover="images/Bedr00mZ_Desk_top_hover.gif"
+             data-on="images/Bedr00mZ_Desk_top_on.gif">
+      </div>
+
+      <div class="garage">
+        <div class="garage-door"></div>
+        <div class="garage-content">
+          <div class="binder-page">
+            <div class="randomSlider">
+              <ul class="fader">
+                <li data-id="1"><img src="images/Bedr00mZ_000_01-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="2"><img src="images/Bedr00mZ_000_02-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="3"><img src="images/Bedr00mZ_000_03-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="4"><img src="images/Bedr00mZ_000_04-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="5"><img src="images/Bedr00mZ_000_05-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="6"><img src="images/Bedr00mZ_000_06-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="7"><img src="images/Bedr00mZ_000_07-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="8"><img src="images/Bedr00mZ_000_08-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="9"><img src="images/Bedr00mZ_000_09-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="10"><img src="images/Bedr00mZ_000_10-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="11"><img src="images/Bedr00mZ_000_11-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="12"><img src="images/Bedr00mZ_000_12-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="15"><img src="images/Bedr00mZ_000_15-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="16"><img src="images/Bedr00mZ_000_16-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="17"><img src="images/Bedr00mZ_000_17-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="18"><img src="images/Bedr00mZ_000_18-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="19"><img src="images/Bedr00mZ_000_19-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="20"><img src="images/Bedr00mZ_000_20-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="21"><img src="images/Bedr00mZ_000_21-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="22"><img src="images/Bedr00mZ_000_22-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="23"><img src="images/Bedr00mZ_000_23-Viktor_Tibay.gif" class="cadre"></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="decor decor-bottom">
+        <img class="img-bottom" src="images/Bedr00mZ_Desk_bottom.gif" alt="">
+      </div>
+    </div>
+
+    <div class="garage-spacer"></div>
+
+    <!-- ===== SCENE GARAGE Sourire de Nuit ===== -->
+    <div class="scene scene-rust" data-garage>
+      <div class="decor decor-top">
+        <img src="images/Bedr00mZ_Sourire_top_off.gif"
+             data-off="images/Bedr00mZ_Sourire_top_off.gif"
+             data-hover="images/Bedr00mZ_Sourire_top_hover.gif"
+             data-on="images/Bedr00mZ_Sourire_top_on.gif">
+      </div>
+
+      <div class="garage">
+        <div class="garage-door"></div>
+        <div class="garage-content">
+          <div class="binder-page">
+            <div class="randomSlider">
+              <ul class="fader">
+                <li data-id="1"><img src="images/Bedr00mZ_001_01-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="2"><img src="images/Bedr00mZ_001_02-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="3"><img src="images/Bedr00mZ_001_03-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="9"><img src="images/Bedr00mZ_001_09-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="10"><img src="images/Bedr00mZ_001_10-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="12"><img src="images/Bedr00mZ_001_12-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="13"><img src="images/Bedr00mZ_001_13-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="14"><img src="images/Bedr00mZ_001_14-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="15"><img src="images/Bedr00mZ_001_15-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="17"><img src="images/Bedr00mZ_001_17-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="18"><img src="images/Bedr00mZ_001_18-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="20"><img src="images/Bedr00mZ_001_20-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="21"><img src="images/Bedr00mZ_001_21-Viktor_Tibay.gif" class="cadre"></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="decor decor-bottom">
+        <img class="img-bottom" src="images/Bedr00mZ_Sourire_bottom.gif">
+      </div>
+    </div>
+    
+    <div class="garage-spacer"></div>
+
+    <!-- ===== SCENE GARAGE d00rStep ===== -->
+    <div class="scene scene-purple" data-garage>
+      <div class="decor decor-top">
+        <img src="images/Bedr00mZ_d00rStep_top_off.gif"
+             data-off="images/Bedr00mZ_d00rStep_top_off.gif"
+             data-hover="images/Bedr00mZ_d00rStep_top_hover.gif"
+             data-on="images/Bedr00mZ_d00rStep_top_on.gif">
+      </div>
+
+      <div class="garage">
+        <div class="garage-door"></div>
+        <div class="garage-content">
+          <div class="binder-page">
+            <div class="randomSlider">
+              <ul class="fader">
+                <li data-id="2"><img src="images/Bedr00mZ_002_02-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="7"><img src="images/Bedr00mZ_002_07-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="9"><img src="images/Bedr00mZ_002_09-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="11"><img src="images/Bedr00mZ_002_11-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="17"><img src="images/Bedr00mZ_002_17-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="18"><img src="images/Bedr00mZ_002_18-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="20"><img src="images/Bedr00mZ_002_20-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="21"><img src="images/Bedr00mZ_002_21-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="22"><img src="images/Bedr00mZ_002_22-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="25"><img src="images/Bedr00mZ_002_25-Viktor_Tibay.gif" class="cadre"></li>
+                <li data-id="31"><img src="images/Bedr00mZ_002_31-Viktor_Tibay.gif" class="cadre"></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="decor decor-bottom">
+        <img class="img-bottom" src="images/Bedr00mZ_d00rStep_bottom.gif">
+      </div>
+    </div>
+
+    <!-- ===== HOME IMAGE ===== -->
+    <div class="home-image">
+      <a href="../h0me.html">
+        <img class="shadow-main" 
+             src="images/H0ME_off.jpg" 
+             onmouseover="this.src='images/H0ME_on.jpg'" 
+             onmouseout="this.src='images/H0ME_off.jpg'" 
+             alt="h0me">
+      </a>
+    </div>
+
+  </div>
+
+  <!-- ===== AUDIO ===== -->
+  <audio id="garage-0pen" src="https://files.catbox.moe/blwtjn.wav" preload="auto" crossorigin="anonymous"></audio>
+  <audio id="garage-klose" src="https://files.catbox.moe/ynk49t.wav" preload="auto" crossorigin="anonymous"></audio>
+  <audio id="garage-klang" src="https://files.catbox.moe/slwyiz.wav" preload="auto" crossorigin="anonymous"></audio>
+  <audio id="garage-hover" src="https://files.catbox.moe/d7upcv.wav" preload="auto" crossorigin="anonymous"></audio>
+</body>
+<!-- Code & Art by Viktor Tibay - © All rights reserved -->

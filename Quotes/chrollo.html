@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrollo Typewriter</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: #050005;
+            color: #8b5cf6;
+            font-family: monospace;
+            overflow: hidden;
+        }
+
+        /* Main Container */
+        #typewriter-container {
+            display: flex;
+            height: 100%;
+            width: 100%;
+            flex-direction: row;
+        }
+
+        /* Left Menu - The Quote Selector */
+        #menu {
+            width: 30%;
+            border-right: 2px dashed #8b5cf6;
+            background: #000;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: inset -10px 0 20px rgba(139, 92, 246, 0.1);
+        }
+
+        .menu-title {
+            color: #8a0303;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #8a0303;
+            margin-bottom: 10px;
+            text-align: center;
+            border-bottom: 1px solid #8a0303;
+            padding-bottom: 10px;
+        }
+
+        .quote-btn {
+            background: transparent;
+            border: 1px solid #8b5cf6;
+            color: #a855f7;
+            font-family: monospace;
+            font-size: 14px;
+            padding: 10px;
+            cursor: pointer;
+            text-align: left;
+            transition: 0.3s;
+        }
+
+        .quote-btn:hover,
+        .quote-btn.active {
+            background: #8b5cf6;
+            color: #000;
+            box-shadow: 0 0 15px #8b5cf6;
+        }
+
+        /* Special styling for the 7th button */
+        .special-btn {
+            border-color: #8a0303;
+            color: #ff0000;
+        }
+
+        .special-btn:hover,
+        .special-btn.active {
+            background: #8a0303;
+            color: #fff;
+            box-shadow: 0 0 15px #8a0303;
+        }
+
+        /* Right Side - The Typing Area */
+        #typing-area {
+            width: 70%;
+            padding: 40px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            position: relative;
+        }
+
+        /* Scanline effect */
+        #typing-area::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px);
+            pointer-events: none;
+        }
+
+        /* Text Display */
+        #text-display {
+            font-size: 18px;
+            line-height: 1.8;
+            color: #fff;
+            text-shadow: 0 0 8px #8b5cf6;
+            white-space: pre-wrap;
+            margin: auto 0;
+            max-height: 100%;
+            overflow-y: auto;
+            padding-right: 15px;
+            z-index: 10;
+        }
+
+        /* Custom Blood Red Hacker Scrollbar */
+        #text-display::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #text-display::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #text-display::-webkit-scrollbar-thumb {
+            background: #8a0303;
+            border-radius: 5px;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 18px;
+            background-color: #8b5cf6;
+            margin-left: 2px;
+            animation: blink 1s step-end infinite;
+            vertical-align: text-bottom;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            #typewriter-container {
+                flex-direction: column;
+            }
+
+            #menu {
+                width: 100%;
+                height: 40%;
+                border-right: none;
+                border-bottom: 2px dashed #8b5cf6;
+                overflow-y: auto;
+                padding: 10px;
+            }
+
+            #typing-area {
+                width: 100%;
+                height: 60%;
+                padding: 20px;
+            }
+
+            #text-display {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="typewriter-container">
+
+        <div id="menu">
+            <div class="menu-title">>> ARCHIVES</div>
+            <button class="quote-btn" onclick="loadQuote(0, this)">1. The Requiem</button>
+            <button class="quote-btn" onclick="loadQuote(1, this)">2. The Spider</button>
+            <button class="quote-btn" onclick="loadQuote(2, this)">3. Skill Hunter</button>
+            <button class="quote-btn" onclick="loadQuote(3, this)">4. Human Nature</button>
+            <button class="quote-btn" onclick="loadQuote(4, this)">5. The Disconnect</button>
+            <button class="quote-btn" onclick="loadQuote(5, this)">6. Meteor City</button>
+            <button class="quote-btn special-btn" onclick="loadQuote(6, this)">7. The Void ⚚</button>
+        </div>
+
+        <div id="typing-area">
+            <div id="text-display"></div>
+        </div>
+
+    </div>
+
+    <script>
+        // Chrollo's 7 Quotes Data
+        const quotes = [
+            "Uvogin... Can you hear it?\n\nThe requiem we are offering to you.",
+
+            "Flesh is a mere vessel.\n\nThe spider will not die, even if its head is crushed. That is the rule we must all follow.",
+
+            "Making the abilities yours while exploring the darkness within the soul of the original owner...\n\nThat is the true pleasure of Skill Hunter.",
+
+            "I believe that we have a soul. \n\nThat is why I want to fulfill my dead comrade's wishes... \n\nto wreak havoc.",
+
+            // The New 5th Quote (Gon's Dialogue)
+            "<span style='color: #a855f7;'>\"How can you kill people who have nothing to do with you?\"</span>\n\nHow, indeed...\n\nIt is probably because they have nothing to do with me. No, wait... On second thought, it is not that simple.\n\nMy motives aren't that easy to explain. I suppose... you could say it is the key to understanding myself.",
+
+            // The New 6th Quote (Meteor City)
+            "We reject no one.\n\nSo take nothing from us.\n\nThat is the rule of Meteor City. We steal what we want, and we take lives when necessary. Nothing more, nothing less.",
+
+            // The 7th Biography (Moved to the end as the grand finale)
+            "<span style='color: #c084fc;'>Born in the forgotten ruins of Meteor City, he is a child the world discarded before he could even breathe.</span> ࿇\n\n<span style='color: #a855f7;'>Chrollo Lucilfer is not merely a thief; he is a sentient void.</span> His Nen, the <span style='color: #ff0000;'>Skill Hunter</span>, is a perfect reflection of this profound emptiness—an abyss so vast it can swallow the talents, the souls, and the lifelong devotions of others without ever reaching a bottom. 🕷\n\n<span style='color: #8b5cf6;'>He steals to understand human nature.</span> He hoards the brilliance of humanity, praying that one day, he might plunder a warmth profound enough to fill the chilling hollow within his chest. 🕸️\n\nUntil that day, he remains the Head of the Spider. A man weaving a web of requiems, mourning a world that rejected him, forever searching for the one treasure that can finally make him whole. <span style='color: #8a0303;'>⚚♱⃓</span>"
+        ];
+
+        let i = 0;
+        let currentText = "";
+        let typeTimeout;
+        const display = document.getElementById("text-display");
+
+        // Upgraded Typewriter Function (Can read HTML tags to change colors!)
+        function typeWriter(text) {
+            if (i < text.length) {
+
+                // If it sees an HTML tag, it processes the whole tag instantly instead of typing it out
+                if (text.charAt(i) === '<') {
+                    let tag = "";
+                    while (i < text.length && text.charAt(i) !== '>') {
+                        tag += text.charAt(i);
+                        i++;
+                    }
+                    tag += '>';
+                    currentText += tag;
+                    i++; // move past '>'
+                    typeWriter(text); // Call immediately to avoid invisible delays
+                    return;
+                }
+                // Handle line breaks
+                else if (text.charAt(i) === '\n') {
+                    currentText += "<br>";
+                    i++;
+                }
+                // Handle normal letters
+                else {
+                    currentText += text.charAt(i);
+                    i++;
+                }
+
+                display.innerHTML = currentText + '<span class="cursor"></span>';
+
+                // Randomize typing speed slightly to make it look human/mechanical
+                let speed = Math.random() * 40 + 20;
+                typeTimeout = setTimeout(() => typeWriter(text), speed);
+            } else {
+                display.innerHTML = currentText + '<span class="cursor"></span>';
+
+                // Auto-scroll to the bottom as it types!
+                display.scrollTop = display.scrollHeight;
+            }
+        }
+
+        function loadQuote(index, btnElement) {
+            clearTimeout(typeTimeout);
+            i = 0;
+            currentText = "";
+            display.innerHTML = '<span class="cursor"></span>';
+
+            let btns = document.querySelectorAll('.quote-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            if (btnElement) btnElement.classList.add('active');
+
+            setTimeout(() => {
+                typeWriter(quotes[index]);
+            }, 400);
+        }
+
+        window.onload = () => {
+            let firstBtn = document.querySelectorAll('.quote-btn')[0];
+            loadQuote(0, firstBtn);
+        };
+    </script>
+</body>
+
+</html>

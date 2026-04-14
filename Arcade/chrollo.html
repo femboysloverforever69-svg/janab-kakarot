@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Phantom Troupe Arcade</title>
+    <style>
+        /* Base Setup */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #050005;
+            overflow: hidden;
+            touch-action: none;
+            user-select: none;
+            font-family: monospace;
+            color: #8b5cf6;
+        }
+
+        /* Game Container */
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        /* Canvas Auto-Resizes */
+        canvas {
+            flex-grow: 1;
+            width: 100%;
+            display: block;
+            background: #000;
+            box-shadow: inset 0 0 20px rgba(138, 3, 3, 0.2);
+        }
+
+        /* Mobile Touch Controls */
+        #arcade-controls {
+            display: flex;
+            height: 80px;
+            width: 100%;
+            background: #050005;
+            border-top: 2px dashed #8b5cf6;
+        }
+
+        .touch-btn {
+            flex: 1;
+            background: #000;
+            color: #8b5cf6;
+            font-size: 32px;
+            font-weight: bold;
+            border: 1px solid #8b5cf6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .touch-btn:active,
+        .touch-btn.active {
+            background: #8b5cf6;
+            color: #000;
+            box-shadow: inset 0 0 15px #000;
+        }
+
+        /* UI Overlay (Menus) */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 80px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(5, 0, 5, 0.85);
+            z-index: 10;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            text-shadow: 0 0 15px #8b5cf6;
+            letter-spacing: 2px;
+        }
+
+        p {
+            margin: 10px 0;
+            color: #a855f7;
+            font-size: 14px;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+
+        .red-text {
+            color: #8a0303;
+            text-shadow: 0 0 15px #8a0303;
+        }
+
+        /* Glowing Cyber Buttons */
+        .action-btn {
+            background: #000;
+            border: 2px solid #8b5cf6;
+            color: #8b5cf6;
+            padding: 15px 40px;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 20px;
+            transition: 0.2s;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+        }
+
+        .action-btn:hover {
+            background: #8b5cf6;
+            color: #000;
+            box-shadow: 0 0 20px #8b5cf6;
+        }
+
+        .btn-danger {
+            border-color: #8a0303;
+            color: #ff0000;
+            box-shadow: 0 0 10px rgba(138, 3, 3, 0.4);
+        }
+
+        .btn-danger:hover {
+            background: #8a0303;
+            color: #fff;
+            box-shadow: 0 0 20px #8a0303;
+        }
+
+        /* HUD */
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            right: 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: bold;
+            pointer-events: none;
+            text-shadow: 0 0 5px #000;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="game-container">
+        <div id="hud">
+            <span id="score-display">SCORE: 0</span>
+            <span id="lives-display" style="color: #8a0303;">LIVES: ✦✦✦</span>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="ui-layer">
+            <h1 id="menu-title">>> PHANTOM_REQUIEM</h1>
+            <p id="menu-desc">Dodge the falling Chains.<br>Use the buttons below or Left/Right Arrow Keys.</p>
+            <button id="action-button" class="action-btn">[ START SURVIVAL ]</button>
+        </div>
+
+        <div id="arcade-controls">
+            <div id="btn-left" class="touch-btn">&lt;&lt;</div>
+            <div id="btn-right" class="touch-btn">&gt;&gt;</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // UI Elements
+        const uiLayer = document.getElementById("ui-layer");
+        const menuTitle = document.getElementById("menu-title");
+        const menuDesc = document.getElementById("menu-desc");
+        const actionBtn = document.getElementById("action-button");
+        const scoreDisplay = document.getElementById("score-display");
+        const livesDisplay = document.getElementById("lives-display");
+
+        // Game Variables
+        let state = "START";
+        let score = 0;
+        let lives = 3;
+        let frames = 0;
+
+        let player = { x: 0, y: 0, width: 25, height: 25, color: "#a855f7", speed: 6 };
+        let chains = [];
+
+        // Fix Canvas Size & Lock Player to the far back
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight - 80;
+            // Lock player strictly to the bottom of the screen
+            player.y = canvas.height - 60;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+        player.x = (canvas.width / 2) - (player.width / 2);
+
+        // Controls
+        let keys = { left: false, right: false };
+
+        window.addEventListener("keydown", (e) => {
+            if (e.code === "ArrowLeft") keys.left = true;
+            if (e.code === "ArrowRight") keys.right = true;
+        });
+        window.addEventListener("keyup", (e) => {
+            if (e.code === "ArrowLeft") keys.left = false;
+            if (e.code === "ArrowRight") keys.right = false;
+        });
+
+        const btnLeft = document.getElementById("btn-left");
+        const btnRight = document.getElementById("btn-right");
+
+        const touchStartLeft = (e) => { e.preventDefault(); keys.left = true; btnLeft.classList.add("active"); };
+        const touchEndLeft = (e) => { e.preventDefault(); keys.left = false; btnLeft.classList.remove("active"); };
+        const touchStartRight = (e) => { e.preventDefault(); keys.right = true; btnRight.classList.add("active"); };
+        const touchEndRight = (e) => { e.preventDefault(); keys.right = false; btnRight.classList.remove("active"); };
+
+        btnLeft.addEventListener("touchstart", touchStartLeft);
+        btnLeft.addEventListener("touchend", touchEndLeft);
+        btnLeft.addEventListener("mousedown", touchStartLeft);
+        btnLeft.addEventListener("mouseup", touchEndLeft);
+        btnLeft.addEventListener("mouseleave", touchEndLeft);
+
+        btnRight.addEventListener("touchstart", touchStartRight);
+        btnRight.addEventListener("touchend", touchEndRight);
+        btnRight.addEventListener("mousedown", touchStartRight);
+        btnRight.addEventListener("mouseup", touchEndRight);
+        btnRight.addEventListener("mouseleave", touchEndRight);
+
+        // Button Logic
+        actionBtn.addEventListener("click", () => {
+            if (state === "START") {
+                resetGame();
+            } else if (state === "HIT") {
+                respawn();
+            }
+        });
+
+        function resetGame() {
+            score = 0;
+            lives = 3;
+            chains = [];
+            player.x = (canvas.width / 2) - (player.width / 2);
+            updateHUD();
+            uiLayer.style.display = "none";
+            state = "PLAYING";
+            loop();
+        }
+
+        function respawn() {
+            chains = [];
+            player.x = (canvas.width / 2) - (player.width / 2);
+            uiLayer.style.display = "none";
+            state = "PLAYING";
+            loop();
+        }
+
+        function updateHUD() {
+            scoreDisplay.innerText = "SCORE: " + score;
+            let lifeStr = "";
+            for (let i = 0; i < lives; i++) lifeStr += "✦";
+            livesDisplay.innerText = "LIVES: " + lifeStr;
+        }
+
+        function spawnChain() {
+            let size = Math.random() * 20 + 10;
+            let x = Math.random() * (canvas.width - size);
+            // Increased base speed & faster scaling
+            let speed = (Math.random() * 3 + 4.5) + (score / 150);
+            chains.push({ x: x, y: -50, width: size, height: size * 3, speed: speed });
+        }
+
+        function loop() {
+            if (state !== "PLAYING") return;
+            requestAnimationFrame(loop);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            frames++;
+
+            if (keys.left && player.x > 0) player.x -= player.speed;
+            if (keys.right && player.x < canvas.width - player.width) player.x += player.speed;
+
+            // Draw Player
+            ctx.fillStyle = player.color;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "#8b5cf6";
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            ctx.fillStyle = "#fff";
+            ctx.shadowBlur = 0;
+            ctx.fillRect(player.x + 8, player.y + 8, player.width - 16, player.height - 16);
+
+            // Chains Logic
+            ctx.fillStyle = "#8a0303";
+            ctx.shadowColor = "#ff0000";
+            ctx.shadowBlur = 10;
+
+            for (let i = 0; i < chains.length; i++) {
+                let c = chains[i];
+                c.y += c.speed;
+                ctx.fillRect(c.x, c.y, c.width, c.height);
+
+                if (player.x < c.x + c.width && player.x + player.width > c.x &&
+                    player.y < c.y + c.height && player.y + player.height > c.y) {
+
+                    lives--;
+                    updateHUD();
+
+                    if (lives > 0) {
+                        state = "HIT";
+                        uiLayer.style.display = "flex";
+                        menuTitle.innerText = "CRITICAL HIT";
+                        menuTitle.className = "red-text";
+                        menuDesc.innerText = "You have " + lives + " phantom bodies remaining.";
+                        actionBtn.innerText = "[ RESPAWN ]";
+                        actionBtn.className = "action-btn btn-danger";
+                    } else {
+                        state = "GAMEOVER";
+                        uiLayer.style.display = "flex";
+                        menuTitle.innerText = "GAME OVER";
+                        menuTitle.className = "red-text";
+                        menuDesc.innerText = "Final Score: " + score;
+
+                        // Completely hide the button so they must refresh!
+                        actionBtn.style.display = "none";
+                    }
+                    return;
+                }
+            }
+
+            for (let i = chains.length - 1; i >= 0; i--) {
+                if (chains[i].y > canvas.height) {
+                    chains.splice(i, 1);
+                    score += 10;
+                    updateHUD();
+                }
+            }
+
+            let spawnRate = Math.max(10, 35 - Math.floor(score / 100));
+            if (frames % spawnRate === 0) spawnChain();
+        }
+
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    </script>
+</body>
+
+</html>

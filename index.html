@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYSTEM OVERRIDE...</title>
+    <link rel="icon" type="image/x-icon" href="images/850.ico">
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: #000;
+            color: #fff;
+            font-family: monospace;
+            overflow: hidden;
+        }
+
+        /* FULLSCREEN RESPONSIVE GIF */
+        #bg-gif {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            opacity: 0.25;
+            filter: grayscale(60%) contrast(200%);
+            z-index: 1;
+            transition: opacity 1s, filter 1s;
+            pointer-events: none;
+        }
+
+        /* CREEPY BREATHING VIGNETTE */
+        .vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            box-shadow: inset 0 0 250px rgba(0, 0, 0, 0.95);
+            z-index: 2;
+            pointer-events: none;
+            animation: breathDark 4s infinite alternate;
+        }
+
+        @keyframes breathDark {
+            0% {
+                box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.8);
+            }
+
+            100% {
+                box-shadow: inset 0 0 350px #000;
+            }
+        }
+
+        /* CRT SCANLINES */
+        .scanlines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* THE CLICKABLE LAYER */
+        #click-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 20;
+            cursor: not-allowed;
+        }
+
+        /* When the timer hits 0 */
+        #click-layer.ready {
+            cursor: crosshair;
+        }
+
+        /* TEXT CONTAINER - MOVED TO BOTTOM */
+        #terminal-box {
+            position: absolute;
+            bottom: 12%;
+            /* Pushes the box to the bottom of the screen */
+            left: 50%;
+            transform: translateX(-50%);
+            /* Centers it horizontally */
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 25px 40px;
+            border-left: 4px solid #0f0;
+            /* Sleek side borders */
+            border-right: 4px solid #0f0;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+            pointer-events: none;
+            text-align: center;
+            width: 80%;
+            max-width: 600px;
+            transition: border-color 0.5s, box-shadow 0.5s;
+        }
+
+        /* Ready State for the Terminal Box */
+        #terminal-box.granted {
+            border-color: #ff0000;
+            box-shadow: 0 0 40px rgba(255, 0, 0, 0.2);
+        }
+
+        #text-display {
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            line-height: 1.6;
+        }
+
+        /* The Typing Cursor */
+        .cursor {
+            display: inline-block;
+            width: 12px;
+            height: 20px;
+            background-color: #0f0;
+            margin-left: 5px;
+            vertical-align: text-bottom;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* THE TIMER */
+        #timer-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff0000;
+            text-shadow: 0 0 15px #ff0000;
+            display: none;
+            animation: panic 0.5s infinite;
+            margin-top: 15px;
+        }
+
+        @keyframes panic {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        /* Subtle background glitch */
+        .glitch-anim {
+            animation: screenGlitch 0.3s 3;
+        }
+
+        @keyframes screenGlitch {
+            0% {
+                transform: translate(3px, 2px);
+                filter: hue-rotate(90deg) invert(10%);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: translate(-3px, -2px);
+                filter: hue-rotate(-90deg) invert(0%);
+                opacity: 0.2;
+            }
+
+            100% {
+                transform: translate(0, 0);
+                filter: hue-rotate(0deg);
+                opacity: 0.6;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #terminal-box {
+                padding: 15px 20px;
+                width: 90%;
+                bottom: 8%;
+            }
+
+            #text-display {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <img id="bg-gif" src="Enterrr.gif" alt="Background">
+    <div class="vignette"></div>
+    <div class="scanlines"></div>
+
+    <div id="click-layer" onclick="tryEnter()">
+        <div id="terminal-box">
+            <div id="text-display"></div>
+            <div id="timer-display">[ 5 ]</div>
+        </div>
+    </div>
+
+    <script>
+        // Pure Hacker Text
+        const welcomeText = "<span style='color: #0f0; text-shadow: 0 0 10px #0f0;'>WELCOME TO </span><br><span style='color: #c084fc; text-shadow: 0 0 15px #c084fc; font-size: 26px;'>جناب كيكاروت</span><br><span style='color: #0f0; text-shadow: 0 0 10px #0f0;'>ARCHIVES...</span>";
+
+        const proceedText = "<span style='color: #ff0000; text-shadow: 0 0 20px #ff0000; letter-spacing: 4px;'>[ ACCESS GRANTED ]<br><br>>> INITIATE <<</span>";
+
+        let i = 0;
+        let currentHTML = "";
+        let isReady = false;
+        const display = document.getElementById("text-display");
+        const timerDisplay = document.getElementById("timer-display");
+        const bgGif = document.getElementById("bg-gif");
+        const clickLayer = document.getElementById("click-layer");
+        const terminalBox = document.getElementById("terminal-box");
+
+        function typeWriter(textToType, callback) {
+            i = 0;
+            currentHTML = "";
+
+            function type() {
+                if (i < textToType.length) {
+                    if (textToType.charAt(i) === '<') {
+                        let tag = "";
+                        while (i < textToType.length && textToType.charAt(i) !== '>') {
+                            tag += textToType.charAt(i);
+                            i++;
+                        }
+                        tag += '>';
+                        currentHTML += tag;
+                        i++;
+                        type();
+                        return;
+                    } else {
+                        currentHTML += textToType.charAt(i);
+                        i++;
+                    }
+
+                    display.innerHTML = currentHTML + '<span class="cursor"></span>';
+                    setTimeout(type, Math.random() * 40 + 20);
+                } else {
+                    display.innerHTML = currentHTML;
+                    if (callback) callback();
+                }
+            }
+            type();
+        }
+
+        window.onload = () => {
+            typeWriter(welcomeText, () => {
+                timerDisplay.style.display = "block";
+                let countdown = 5;
+
+                let timerInterval = setInterval(() => {
+                    countdown--;
+                    if (countdown > 0) {
+                        timerDisplay.innerText = `[ ${countdown} ]`;
+                    } else {
+                        clearInterval(timerInterval);
+
+                        bgGif.classList.add('glitch-anim');
+
+                        display.innerHTML = "";
+                        timerDisplay.style.display = "none";
+
+                        // Change the terminal borders to Red
+                        terminalBox.classList.add('granted');
+
+                        typeWriter(proceedText, () => {
+                            isReady = true;
+                            clickLayer.classList.add('ready');
+
+                            // Light up the GIF so they can clearly see the blinking monitor
+                            bgGif.style.opacity = "0.7";
+                            bgGif.style.filter = "grayscale(20%) contrast(150%)";
+
+                            display.innerHTML += '<span class="cursor" style="background-color: #ff0000;"></span>';
+                        });
+                    }
+                }, 1000);
+            });
+        };
+
+        function tryEnter() {
+            if (isReady) {
+                window.location.href = 'h0me.html';
+            }
+        }
+    </script>
+
+</body>
+
+</html>

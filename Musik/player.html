@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S0undTrackZ Player</title>
+    <style>
+        /* Base Retro Terminal Reset */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: #050005;
+            color: #8b5cf6;
+            font-family: monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* The Main TV Box */
+        #player-container {
+            width: 90vw;
+            max-width: 400px;
+            background: #000;
+            border: 2px solid #8b5cf6;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4), inset 0 0 15px rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        /* The CRT Screen (Holds the GIF) */
+        #tv-screen {
+            width: 100%;
+            height: 250px;
+            background-color: #050005;
+            background-size: cover;
+            background-position: center;
+            border: 2px dashed #8b5cf6;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        /* Retro CRT Scanline Effect Overlay */
+        #tv-screen::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+        }
+
+        /* Track Info & Typewriter */
+        #track-info {
+            height: 40px;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 0 0 5px #8b5cf6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .cursor {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* Timers */
+        #time-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #a855f7;
+            margin-bottom: 5px;
+        }
+
+        /* Custom Retro Sliders (Progress & Volume) */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        /* The Track */
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            background: #220022;
+            border: 1px solid #8b5cf6;
+        }
+
+        /* The Draggable Thumb */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 10px;
+            background: #8b5cf6;
+            margin-top: -6px;
+            border: 1px solid #fff;
+            box-shadow: 0 0 5px #8b5cf6;
+        }
+
+        /* Buttons Container */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        /* Retro Buttons */
+        .btn {
+            background: #000;
+            border: 1px solid #8b5cf6;
+            color: #8b5cf6;
+            font-family: monospace;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-shadow: 0 0 5px #8b5cf6;
+        }
+
+        .btn:hover {
+            background: #8b5cf6;
+            color: #000;
+            box-shadow: 0 0 10px #8b5cf6;
+        }
+
+        /* Play Button Gets Red Accent */
+        #play-btn {
+            border-color: #8a0303;
+            color: #ff0000;
+            text-shadow: 0 0 5px #8a0303;
+            width: 100px;
+        }
+
+        #play-btn:hover {
+            background: #8a0303;
+            color: #fff;
+            box-shadow: 0 0 10px #8a0303;
+        }
+
+        /* Volume Container */
+        .vol-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .vol-icon {
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="player-container">
+        <div id="tv-screen"></div>
+
+        <div id="track-info">
+            <span id="typed-text"></span><span class="cursor">_</span>
+        </div>
+
+        <div id="time-display">
+            <span id="current-time">0:00</span>
+            <span id="total-time">0:00</span>
+        </div>
+        <input type="range" id="seek-bar" value="0" min="0" max="100" step="1">
+
+        <div class="controls">
+            <button class="btn" id="prev-btn">[ &lt;&lt; ]</button>
+            <button class="btn" id="play-btn">PLAY &gt;</button>
+            <button class="btn" id="next-btn">[ &gt;&gt; ]</button>
+        </div>
+
+        <div class="vol-container">
+            <span class="vol-icon">VOL:</span>
+            <input type="range" id="volume-bar" value="50" min="0" max="100">
+        </div>
+    </div>
+
+    <script>
+        // Your Master Tracklist
+        const playlist = [
+            { name: "Eyes Without A Face", audio: "assets/1.mp3", gif: "assets/1.gif" },
+            { name: "Wicked Game", audio: "assets/2.mp3", gif: "assets/2.gif" },
+            { name: "There Is A Light That Never Goes Out", audio: "assets/3.mp3", gif: "assets/3.gif" },
+            { name: "Call it fate, Call it karma", audio: "assets/4.mp3", gif: "assets/4.gif" },
+            { name: "Elouda Lminsiyeh", audio: "assets/5.mp3", gif: "assets/5.gif" },
+            { name: "Always Forever", audio: "assets/6.mp3", gif: "assets/6.gif" },
+            { name: "My kind of woman", audio: "assets/7.mp3", gif: "assets/7.gif" }
+        ];
+
+        let currentTrack = 0;
+        let audio = new Audio();
+        let isPlaying = false;
+        let typeTimeout;
+
+        const screen = document.getElementById("tv-screen");
+        const typedText = document.getElementById("typed-text");
+        const playBtn = document.getElementById("play-btn");
+        const prevBtn = document.getElementById("prev-btn");
+        const nextBtn = document.getElementById("next-btn");
+        const seekBar = document.getElementById("seek-bar");
+        const volumeBar = document.getElementById("volume-bar");
+        const currentTimeLabel = document.getElementById("current-time");
+        const totalTimeLabel = document.getElementById("total-time");
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "0:00";
+            let min = Math.floor(seconds / 60);
+            let sec = Math.floor(seconds % 60);
+            return min + ":" + (sec < 10 ? "0" : "") + sec;
+        }
+
+        function typeWriter(text, i) {
+            if (i === 0) typedText.innerHTML = "";
+            if (i < text.length) {
+                typedText.innerHTML += text.charAt(i);
+                typeTimeout = setTimeout(() => typeWriter(text, i + 1), 80);
+            }
+        }
+
+        function loadTrack(index) {
+            clearTimeout(typeTimeout);
+            audio.src = playlist[index].audio;
+            screen.style.backgroundImage = `url('${playlist[index].gif}')`;
+            typeWriter("> " + playlist[index].name, 0);
+            audio.volume = volumeBar.value / 100;
+        }
+
+        // --- HACKER COMMS LINK BUILT IN HERE ---
+        function togglePlay() {
+            if (isPlaying) {
+                audio.pause();
+                playBtn.innerText = "PLAY >";
+                isPlaying = false;
+
+                // Beam RESUME signal securely
+                if (window.parent) {
+                    window.parent.postMessage("RESUME_BGM", "*");
+                }
+            } else {
+                audio.play();
+                playBtn.innerText = "PAUSE ||";
+                isPlaying = true;
+
+                // Beam OVERRIDE signal securely
+                if (window.parent) {
+                    window.parent.postMessage("OVERRIDE_BGM", "*");
+                }
+            }
+        }
+
+        function nextTrack() {
+            currentTrack = (currentTrack + 1) % playlist.length;
+            loadTrack(currentTrack);
+            if (isPlaying) audio.play();
+        }
+
+        function prevTrack() {
+            currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
+            loadTrack(currentTrack);
+            if (isPlaying) audio.play();
+        }
+
+        playBtn.addEventListener("click", togglePlay);
+        nextBtn.addEventListener("click", nextTrack);
+        prevBtn.addEventListener("click", prevTrack);
+
+        audio.addEventListener("timeupdate", () => {
+            seekBar.value = (audio.currentTime / audio.duration) * 100 || 0;
+            currentTimeLabel.innerText = formatTime(audio.currentTime);
+        });
+
+        audio.addEventListener("loadedmetadata", () => {
+            totalTimeLabel.innerText = formatTime(audio.duration);
+        });
+
+        audio.addEventListener("ended", nextTrack);
+
+        seekBar.addEventListener("input", () => {
+            audio.currentTime = (seekBar.value / 100) * audio.duration;
+        });
+
+        volumeBar.addEventListener("input", () => {
+            audio.volume = volumeBar.value / 100;
+        });
+
+        loadTrack(currentTrack);
+    </script>
+</body>
+
+</html>

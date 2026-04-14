@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Legends Vault</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: #050005;
+            color: #ffaa00;
+            font-family: monospace;
+            overflow: hidden;
+        }
+
+        body {
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* Scanline Overlay */
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1) 1px, transparent 1px, transparent 2px);
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Screen Shake Animation */
+        .shake {
+            animation: earthquake 0.5s infinite;
+        }
+
+        @keyframes earthquake {
+            0% {
+                transform: translate(2px, 1px) rotate(0deg);
+            }
+
+            10% {
+                transform: translate(-1px, -2px) rotate(-1deg);
+            }
+
+            20% {
+                transform: translate(-3px, 0px) rotate(1deg);
+            }
+
+            30% {
+                transform: translate(0px, 2px) rotate(0deg);
+            }
+
+            40% {
+                transform: translate(1px, -1px) rotate(1deg);
+            }
+
+            50% {
+                transform: translate(-1px, 2px) rotate(-1deg);
+            }
+
+            60% {
+                transform: translate(-3px, 1px) rotate(0deg);
+            }
+
+            70% {
+                transform: translate(2px, 1px) rotate(-1deg);
+            }
+
+            80% {
+                transform: translate(-1px, -1px) rotate(1deg);
+            }
+
+            90% {
+                transform: translate(2px, 2px) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(1px, -2px) rotate(-1deg);
+            }
+        }
+
+        /* Main Radar Container */
+        #radar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* The Circular Grid */
+        .circle-grid {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            border: 2px dashed rgba(255, 170, 0, 0.3);
+            border-radius: 50%;
+            box-shadow: 0 0 40px rgba(255, 170, 0, 0.1);
+            margin-bottom: 40px;
+        }
+
+        /* The Dragon Balls */
+        .dragon-ball {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ffdf00, #ff8c00, #cc0000);
+            box-shadow: inset -5px -5px 15px rgba(0, 0, 0, 0.6), 0 0 15px #ffaa00;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #8a0303;
+            font-size: 14px;
+            line-height: 1.1;
+            cursor: pointer;
+            transition: 0.3s;
+            transform: translate(-50%, -50%);
+            opacity: 0.6;
+            filter: grayscale(50%);
+        }
+
+        .dragon-ball:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            filter: grayscale(0%);
+            opacity: 1;
+        }
+
+        .dragon-ball.active {
+            opacity: 1;
+            filter: grayscale(0%);
+            box-shadow: inset -5px -5px 15px rgba(0, 0, 0, 0.6), 0 0 30px #ff0000;
+        }
+
+        /* Explicit Placements on the Circle */
+        .ball-1 {
+            left: 50%;
+            top: 0;
+        }
+
+        .ball-2 {
+            left: 93%;
+            top: 25%;
+        }
+
+        .ball-3 {
+            left: 93%;
+            top: 75%;
+        }
+
+        .ball-4 {
+            left: 50%;
+            top: 100%;
+        }
+
+        .ball-5 {
+            left: 7%;
+            top: 75%;
+        }
+
+        .ball-6 {
+            left: 7%;
+            top: 25%;
+        }
+
+        /* The Secret 7th Ball */
+        #ball-7 {
+            left: 50%;
+            top: 50%;
+            display: none;
+            opacity: 1;
+            filter: grayscale(0%);
+            box-shadow: inset -5px -5px 15px rgba(0, 0, 0, 0.6), 0 0 50px #ff0000, 0 0 100px #ffaa00;
+            animation: pulse 1.5s infinite;
+            z-index: 10;
+            font-size: 16px;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .level-text {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #ffaa00;
+            letter-spacing: 2px;
+            transition: 0.3s;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 15px;
+            background: #220000;
+            border: 2px solid #ffaa00;
+            box-shadow: 0 0 10px #ffaa00;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #ff0000;
+            box-shadow: 0 0 15px #ff0000;
+            transition: width 0.5s ease-out;
+        }
+
+        /* --- MEDIA VIEWER (Popup for Balls 1-6) --- */
+        #media-viewer {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 50;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .media-content {
+            max-width: 80%;
+            max-height: 80%;
+            object-fit: contain;
+            pointer-events: none;
+            border: 2px solid #ffaa00;
+            box-shadow: 0 0 30px #ffaa00;
+            display: none;
+        }
+
+        #vid-content {
+            pointer-events: auto;
+        }
+
+        /* Allows clicking play/pause */
+        .close-btn {
+            margin-top: 20px;
+            background: #000;
+            border: 2px solid #ff0000;
+            color: #ff0000;
+            padding: 10px 30px;
+            font-family: monospace;
+            font-size: 18px;
+            cursor: pointer;
+            text-shadow: 0 0 10px #ff0000;
+            transition: 0.3s;
+            pointer-events: auto;
+        }
+
+        .close-btn:hover {
+            background: #ff0000;
+            color: #fff;
+            box-shadow: 0 0 20px #ff0000;
+        }
+
+        /* --- THE SPLIT SCREEN (Ball 7) --- */
+        #split-screen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 60;
+            flex-direction: row;
+            background: #000;
+        }
+
+        .half {
+            width: 50%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            box-sizing: border-box;
+            text-align: center;
+            position: relative;
+        }
+
+        .goku-side {
+            border-right: 2px solid #ffaa00;
+            background: radial-gradient(circle at center, rgba(0, 100, 255, 0.05), #000);
+        }
+
+        .luffy-side {
+            background: radial-gradient(circle at center, rgba(255, 0, 0, 0.05), #000);
+        }
+
+        /* GLOWING HERO TITLES */
+        .hero-title {
+            font-size: 45px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            letter-spacing: 4px;
+        }
+
+        .goku-title {
+            color: #fff;
+            animation: glowGoku 2s infinite alternate;
+        }
+
+        .luffy-title {
+            color: #fff;
+            animation: glowLuffy 2s infinite alternate;
+        }
+
+        @keyframes glowGoku {
+            0% {
+                text-shadow: 0 0 10px #00aaff, 0 0 20px #00aaff;
+            }
+
+            100% {
+                text-shadow: 0 0 20px #00aaff, 0 0 40px #00aaff, 0 0 60px #00aaff;
+            }
+        }
+
+        @keyframes glowLuffy {
+            0% {
+                text-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+            }
+
+            100% {
+                text-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000, 0 0 60px #ff0000;
+            }
+        }
+
+        /* TYPEWRITER NOTES */
+        .hero-note {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #ccc;
+            margin-bottom: 40px;
+            max-width: 400px;
+            min-height: 150px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+
+        .type-cursor {
+            animation: blink 1s infinite;
+            background: #fff;
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            margin-left: 2px;
+            vertical-align: middle;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* THE SPECIAL BUTTONS (FADE IN) */
+        .special-btn {
+            padding: 15px 30px;
+            font-family: monospace;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            background: #000;
+            pointer-events: auto;
+            z-index: 101;
+            opacity: 0;
+            /* Hidden at start */
+        }
+
+        .btn-goku {
+            border: 2px solid #00aaff;
+            color: #00aaff;
+            box-shadow: 0 0 15px #00aaff;
+        }
+
+        .btn-goku:hover {
+            background: #00aaff;
+            color: #fff;
+            box-shadow: 0 0 40px #00aaff;
+        }
+
+        .btn-luffy {
+            border: 2px solid #ff0000;
+            color: #ff0000;
+            box-shadow: 0 0 15px #ff0000;
+        }
+
+        .btn-luffy:hover {
+            background: #ff0000;
+            color: #fff;
+            box-shadow: 0 0 40px #ff0000;
+        }
+
+        /* Fullscreen Special Video Overlay */
+        #ultimate-viewer {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 150;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #ultimate-vid {
+            max-width: 90%;
+            max-height: 80%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 50px #fff;
+        }
+
+        @media (max-width: 768px) {
+            #split-screen {
+                flex-direction: column;
+            }
+
+            .half {
+                width: 100%;
+                height: 50%;
+                padding: 10px;
+                border-right: none;
+                border-bottom: 2px solid #ffaa00;
+            }
+
+            .hero-title {
+                font-size: 24px;
+                margin-bottom: 10px;
+            }
+
+            .hero-note {
+                font-size: 11px;
+                margin-bottom: 15px;
+                min-height: 80px;
+            }
+
+            .special-btn {
+                font-size: 14px;
+                padding: 10px 20px;
+            }
+
+            .circle-grid {
+                width: 220px;
+                height: 220px;
+            }
+
+            .dragon-ball {
+                width: 45px;
+                height: 45px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body oncontextmenu="return false;">
+
+    <div id="radar-container">
+        <div class="circle-grid">
+            <div class="dragon-ball ball-1" onclick="openNode(1, this)">★</div>
+            <div class="dragon-ball ball-2" onclick="openNode(2, this)">★★</div>
+            <div class="dragon-ball ball-3" onclick="openNode(3, this)">★★★</div>
+            <div class="dragon-ball ball-4" onclick="openNode(4, this)">★★<br>★★</div>
+            <div class="dragon-ball ball-5" onclick="openNode(5, this)">★★★<br>★★</div>
+            <div class="dragon-ball ball-6" onclick="openNode(6, this)">★★★<br>★★★</div>
+            <div class="dragon-ball" id="ball-7" onclick="openFinale()">★★★<br>★<br>★★★</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="level-text" id="level-text">STAR CREATION LEVEL: 0%</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="media-viewer">
+        <img id="img-content" class="media-content" src="" alt="">
+        <video id="vid-content" class="media-content" src="" controls></video>
+        <button class="close-btn" onclick="closeNode()">[ RETURN ]</button>
+    </div>
+
+    <div id="split-screen">
+        <div class="half goku-side">
+            <div class="hero-title goku-title">GOKU</div>
+            <div class="hero-note" id="goku-note-box"></div>
+            <button class="special-btn btn-goku" id="btn-goku" onclick="playUltimate('goku special.mp4')">[ BEYOND THE
+                LIMIT ]</button>
+        </div>
+
+        <div class="half luffy-side">
+            <div class="hero-title luffy-title">LUFFY</div>
+            <div class="hero-note" id="luffy-note-box"></div>
+            <button class="special-btn btn-luffy" id="btn-luffy" onclick="playUltimate('luffy special.mp4')">[ IT'S MY
+                PEAK ]</button>
+        </div>
+    </div>
+
+    <div id="ultimate-viewer">
+        <video id="ultimate-vid" src="" controls autoplay></video>
+        <button class="close-btn" onclick="closeUltimate()"
+            style="border-color:#fff; color:#fff; box-shadow: 0 0 10px #fff;">[ GO BACK ]</button>
+    </div>
+
+    <script>
+        // FIXED: Node 5 now correctly maps to 'duo-art.png'
+        const mediaDatabase = {
+            1: { type: 'img', src: 'goku-art.jpeg' },
+            2: { type: 'vid', src: 'goku-edit.mp4' },
+            3: { type: 'img', src: 'luffy-art.jpeg' },
+            4: { type: 'vid', src: 'luffy-edit.mp4' },
+            5: { type: 'img', src: 'duo-art.png' }, // CHANGED TO PNG!
+            6: { type: 'vid', src: 'duo-edit.mp4' }
+        };
+
+        let unlockedCount = 0;
+        const progressFill = document.getElementById('progress-fill');
+        const levelText = document.getElementById('level-text');
+        const ball7 = document.getElementById('ball-7');
+        const mediaViewer = document.getElementById('media-viewer');
+        const imgContent = document.getElementById('img-content');
+        const vidContent = document.getElementById('vid-content');
+
+        function openNode(num, element) {
+            const data = mediaDatabase[num];
+            if (data.type === 'img') {
+                imgContent.src = data.src;
+                imgContent.style.display = 'block';
+                vidContent.style.display = 'none';
+            } else {
+                vidContent.src = data.src;
+                vidContent.style.display = 'block';
+                imgContent.style.display = 'none';
+                vidContent.play();
+            }
+            mediaViewer.style.display = 'flex';
+
+            if (!element.classList.contains('active')) {
+                element.classList.add('active');
+                unlockedCount++;
+                let pct = Math.floor((unlockedCount / 6) * 100);
+                progressFill.style.width = pct + '%';
+
+                if (unlockedCount < 6) {
+                    levelText.innerText = `STAR CREATION LEVEL: ${pct}%`;
+                }
+            }
+        }
+
+        function closeNode() {
+            mediaViewer.style.display = 'none';
+            vidContent.pause();
+            imgContent.src = "";
+            vidContent.src = "";
+
+            if (unlockedCount === 6 && ball7.style.display === "") {
+                document.body.classList.add('shake');
+                levelText.innerText = "STAR CREATION LEVEL: MAX — A NEW STAR IS BORN";
+                levelText.style.color = "#fff";
+                levelText.style.textShadow = "0 0 20px #ff0000";
+
+                setTimeout(() => {
+                    document.body.classList.remove('shake');
+                    ball7.style.display = "flex";
+                }, 1000);
+            }
+        }
+
+        // --- TYPEWRITER LOGIC FOR FINALE --- //
+        const gokuText = "He taught us to break past our absolute limits. To smile in the face of impossible odds and overwhelming power. Goku represents the pure, untainted drive to always be better than you were yesterday.<br><br><span style='color:#00aaff; text-shadow:0 0 5px #00aaff;'>\"These legends didn't just entertain me—they inspired my real life. They shaped my willpower.\"<br>— Kako</span>";
+        const luffyText = "He taught us the true meaning of freedom. To fight for our dreams and protect our friends at all costs, no matter who stands in our way. Luffy represents the peak of unyielding, unbreakable willpower.<br><br><span style='color:#ff0000; text-shadow:0 0 5px #ff0000;'>\"I love them. This vault is dedicated to the absolute GOATs.\"<br>— Kako</span>";
+
+        let gState = { i: 0, current: "" };
+        let lState = { i: 0, current: "" };
+
+        function typeGoku() {
+            if (gState.i < gokuText.length) {
+                if (gokuText.charAt(gState.i) === '<') {
+                    let tag = "";
+                    while (gState.i < gokuText.length && gokuText.charAt(gState.i) !== '>') {
+                        tag += gokuText.charAt(gState.i);
+                        gState.i++;
+                    }
+                    tag += '>';
+                    gState.current += tag;
+                    gState.i++;
+                    typeGoku(); // Process tags instantly
+                    return;
+                } else {
+                    gState.current += gokuText.charAt(gState.i);
+                    gState.i++;
+                }
+                document.getElementById('goku-note-box').innerHTML = gState.current + '<span class="type-cursor"></span>';
+                setTimeout(typeGoku, Math.random() * 30 + 10);
+            } else {
+                document.getElementById('goku-note-box').innerHTML = gState.current;
+                document.getElementById('btn-goku').style.opacity = "1"; // Fade in button
+            }
+        }
+
+        function typeLuffy() {
+            if (lState.i < luffyText.length) {
+                if (luffyText.charAt(lState.i) === '<') {
+                    let tag = "";
+                    while (lState.i < luffyText.length && luffyText.charAt(lState.i) !== '>') {
+                        tag += luffyText.charAt(lState.i);
+                        lState.i++;
+                    }
+                    tag += '>';
+                    lState.current += tag;
+                    lState.i++;
+                    typeLuffy();
+                    return;
+                } else {
+                    lState.current += luffyText.charAt(lState.i);
+                    lState.i++;
+                }
+                document.getElementById('luffy-note-box').innerHTML = lState.current + '<span class="type-cursor"></span>';
+                setTimeout(typeLuffy, Math.random() * 30 + 10);
+            } else {
+                document.getElementById('luffy-note-box').innerHTML = lState.current;
+                document.getElementById('btn-luffy').style.opacity = "1"; // Fade in button
+            }
+        }
+
+        function openFinale() {
+            document.getElementById('radar-container').style.display = 'none';
+            document.getElementById('split-screen').style.display = 'flex';
+
+            // Start typing both notes at the same time
+            setTimeout(() => {
+                typeGoku();
+                typeLuffy();
+            }, 500);
+        }
+
+        function playUltimate(videoFile) {
+            document.getElementById('split-screen').style.display = 'none';
+            const ultViewer = document.getElementById('ultimate-viewer');
+            const ultVid = document.getElementById('ultimate-vid');
+            ultVid.src = videoFile;
+            ultViewer.style.display = 'flex';
+            ultVid.play();
+        }
+
+        function closeUltimate() {
+            const ultVid = document.getElementById('ultimate-vid');
+            ultVid.pause();
+            ultVid.src = "";
+            document.getElementById('ultimate-viewer').style.display = 'none';
+            document.getElementById('split-screen').style.display = 'flex';
+        }
+    </script>
+    <script>
+        // This physically listens for ANY song playing in the Music Player
+        document.addEventListener('play', function () {
+            // Sends a direct override command to h0me.html's BGM Engine
+            if (window.parent && typeof window.parent.pauseForMedia === 'function') {
+                window.parent.pauseForMedia();
+            }
+        }, true);
+    </script>
+</body>
+
+</html>
